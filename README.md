@@ -209,6 +209,24 @@ git config core.hooksPath .githooks
 
 钩子默认不替代 CI；它只是尽早拦截本地明显错误。测试必须保持环境无关，避免某台机器能推送、另一台机器每次都被钩子拦住。
 
+## 发布
+
+推送 `v` 开头的 tag 会触发 GitHub Actions：校验 tag 与 `package.json` 版本一致 → lint → test → 发布到 npm（带 provenance）→ 创建 GitHub Release。
+
+### 首次配置（一次性）
+
+1. 在 npmjs.com 生成 Granular Access Token（Packages 权限选 Read and write）。
+2. 仓库 Settings → Secrets and variables → Actions，添加 secret `NPM_TOKEN`。
+
+### 日常发版
+
+```bash
+npm version patch   # 或 minor / major：更新 package.json 版本、提交并打 tag
+git push --follow-tags
+```
+
+CI 失败时修复后重推 tag：`git push origin :refs/tags/v0.1.1 && git tag v0.1.1 && git push origin v0.1.1`。
+
 ## License
 
 [MIT](LICENSE)
