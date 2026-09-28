@@ -1,0 +1,10 @@
+#!/bin/sh
+# 提交前只跑 lint（约 0.05 秒），完整测试放在 pre-push。
+# 把测试也塞进 pre-commit 会让每次提交都等几秒，最后的结果是大家习惯性 --no-verify。
+# 确实需要跳过时：git commit --no-verify
+
+if ! output=$(npm run lint --silent 2>&1); then
+  printf '%s\n' "$output"
+  printf '\n提交已中止：lint 未通过。修复后重试，或用 git commit --no-verify 跳过。\n'
+  exit 1
+fi

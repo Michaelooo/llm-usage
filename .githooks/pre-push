@@ -1,0 +1,15 @@
+#!/bin/sh
+# 推送前跑一次完整测试（约 5 秒），和流水线跑的是同一条 npm test。
+# 在本地拦住，就不会出现「推上去 → 流水线红灯 → 再补一次修复提交」的来回。
+# 确实需要跳过时：git push --no-verify
+
+printf '推送前运行完整测试…\n'
+
+if ! output=$(npm test 2>&1); then
+  printf '%s\n' "$output"
+  printf '\n推送已中止：测试未通过。修复后重试，或用 git push --no-verify 跳过。\n'
+  exit 1
+fi
+
+# BSD sed 的基本正则不支持 \| 交替，用 grep -E 才能跨平台
+printf '%s\n' "$output" | grep -E '^# (tests|pass|fail) ' | sed 's/^# /  /'

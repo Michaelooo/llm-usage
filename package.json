@@ -1,0 +1,48 @@
+{
+  "name": "@michaelcheng/llm-usage",
+  "version": "0.1.0",
+  "description": "终端里的 LLM 额度与本地 Token 用量看板",
+  "type": "module",
+  "bin": {
+    "llm-usage": "./bin/llm-usage.mjs"
+  },
+  "packageManager": "pnpm@8.15.9",
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks || true",
+    "start": "node ./bin/llm-usage.mjs",
+    "install:local": "node ./install.mjs",
+    "lint": "biome lint .",
+    "test": "node --test",
+    "build": "pnpm pack"
+  },
+  "keywords": [
+    "llm",
+    "usage",
+    "quota",
+    "token",
+    "tokscale",
+    "cli"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@inquirer/prompts": "^7.0.0",
+    "@tokscale/cli": "4.5.3",
+    "undici": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.3"
+  }
+}

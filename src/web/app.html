@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>llm-usage 配置</title>
+<style>
+:root {
+  --bg: #f6f7f9;
+  --card: #ffffff;
+  --border: #e2e5ea;
+  --text: #1c1f24;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --ok: #15803d;
+  --warn: #b45309;
+  --warn-bg: #fef6e7;
+  --err: #b91c1c;
+  --err-bg: #fdecec;
+  --input-bg: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --card: #1e2127;
+    --border: #2f343d;
+    --text: #e6e8eb;
+    --muted: #9aa1ad;
+    --accent: #60a5fa;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --warn-bg: #33280f;
+    --err: #f87171;
+    --err-bg: #3a1c1c;
+    --input-bg: #14161a;
+  }
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 0 0 88px;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+header {
+  padding: 28px 24px 12px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+h1 { font-size: 20px; margin: 0 0 4px; }
+header code { color: var(--muted); font-size: 12px; }
+main { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.card-head { display: flex; align-items: center; gap: 10px; }
+.card-head h2 { font-size: 15px; margin: 0; font-weight: 600; }
+.card-head .name { color: var(--muted); font-size: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.spacer { flex: 1; }
+/* 标签列和控件列由 .body 统一定义，.row 用 display:contents 把子元素直接交给这个网格，
+   这样所有行的两列才会对齐，hint 也能靠 grid-column:2 精确落在控件列下方 */
+.body { margin-top: 12px; display: grid; grid-template-columns: 116px minmax(0, 1fr); gap: 9px 10px; align-items: start; }
+.card.off .body { opacity: .5; }
+.row { display: contents; }
+.row > label { color: var(--muted); padding-top: 7px; font-size: 13px; }
+.control { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+input[type=text], input[type=password], input[type=number], select {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+input.mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+input.bad { border-color: var(--err); }
+input[type=number] { flex: 0 0 110px; }
+.hint { color: var(--muted); font-size: 12px; grid-column: 2; margin: -5px 0 2px; }
+.hint.warn { color: var(--warn); }
+button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.primary:hover { opacity: .9; color: #fff; }
+button.link { border: 0; background: none; color: var(--muted); padding: 6px 4px; }
+button.danger:hover { border-color: var(--err); color: var(--err); }
+button[disabled] { opacity: .5; cursor: default; }
+.switch { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+.result { font-size: 12px; margin-left: 2px; }
+.result.ok { color: var(--ok); }
+.result.err { color: var(--err); }
+.banner { border-radius: 8px; padding: 10px 14px; margin: 0 0 12px; font-size: 13px; display: none; }
+.banner.show { display: block; }
+.banner.ok { background: var(--card); border: 1px solid var(--ok); color: var(--ok); }
+.banner.err { background: var(--err-bg); border: 1px solid var(--err); color: var(--err); }
+.banner ul { margin: 6px 0 0; padding-left: 18px; }
+.addbar { display: flex; gap: 8px; align-items: center; margin: 4px 0 18px; }
+.addbar select { flex: 0 0 180px; }
+.savebar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--card);
+  border-top: 1px solid var(--border);
+  padding: 12px 24px;
+}
+.savebar .inner { max-width: 760px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.savebar .status { font-size: 13px; color: var(--muted); }
+.savebar .status.ok { color: var(--ok); }
+.savebar .status.err { color: var(--err); }
+</style>
+</head>
+<body>
+<header>
+  <h1>llm-usage 配置</h1>
+  <code id="config-path"></code>
+</header>
+<main>
+  <div id="banner" class="banner"></div>
+  <div id="app"></div>
+</main>
+<footer class="savebar">
+  <div class="inner">
+    <button type="button" id="save" class="primary">保存</button>
+    <span id="status" class="status"></span>
+  </div>
+</footer>
+<script>
+const TOKEN = new URLSearchParams(location.search).get('t') || '';
+const app = document.getElementById('app');
+const banner = document.getElementById('banner');
+const statusText = document.getElementById('status');
+let view = null;
+let nodesByPath = {};
+
+async function api(path, options = {}) {
+  const headers = { 'X-Auth-Token': TOKEN };
+  if (options.body) headers['Content-Type'] = 'application/json';
+  const res = await fetch(path, { ...options, headers });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
+
+function el(tag, props, ...children) {
+  const node = document.createElement(tag);
+  for (const [key, value] of Object.entries(props || {})) {
+    if (key === 'class') node.className = value;
+    else if (key === 'text') node.textContent = value;
+    else if (key.startsWith('on')) node.addEventListener(key.slice(2), value);
+    else if (value !== null && value !== undefined && value !== false) node.setAttribute(key, value === true ? '' : value);
+  }
+  // renderField 之类的辅助函数返回的是「行 + 提示」数组，嵌套层级不止一层
+  for (const child of children.flat(Infinity)) {
+    if (child === null || child === undefined || child === false) continue;
+    node.append(child);
+  }
+  return node;
+}
+
+function setBanner(kind, title, items) {
+  banner.className = `banner show ${kind}`;
+  banner.replaceChildren(
+    el('strong', { text: title }),
+    items?.length ? el('ul', {}, items.map(item => el('li', { text: item }))) : null,
+  );
+}
+
+function clearBanner() {
+  banner.className = 'banner';
+  banner.replaceChildren();
+}
+
+function setStatus(kind, text) {
+  statusText.className = `status ${kind}`;
+  statusText.textContent = text;
+}
+
+// 敏感字段留空表示「不改动」，返回 null 让服务端保留盘上的旧值
+function fieldPayload(field) {
+  if (field.type !== 'secret') return field.value ?? '';
+  if (field.value) return field.value;
+  return field.cleared ? '' : null;
+}
+
+function providerPayload(provider) {
+  const fields = {};
+  for (const field of provider.fields) fields[field.key] = fieldPayload(field);
+  return {
+    name: provider.name,
+    originalName: provider.originalName || provider.name,
+    type: provider.type,
+    enabled: provider.enabled,
+    label: provider.label,
+    fields,
+  };
+}
+
+function payload() {
+  const watch = {};
+  for (const field of view.watch) watch[field.key] = field.value;
+  return { providers: view.providers.map(providerPayload), watch };
+}
+
+function overrideHint(field) {
+  return field.overriddenBy
+    ? el('div', { class: 'hint warn', text: `当前被环境变量 ${field.overriddenBy} 覆盖，保存到文件不会改变实际取值` })
+    : (field.help ? el('div', { class: 'hint', text: field.help }) : null);
+}
+
+function renderField(provider, field) {
+  const path = `${provider.name}.${field.key}`;
+  let input;
+
+  if (field.type === 'number') {
+    input = el('input', {
+      type: 'number', min: '1', value: field.value ?? '',
+      oninput: event => { field.value = event.target.value; },
+    });
+  } else if (field.type === 'secret') {
+    input = el('input', {
+      type: 'password', class: 'mono', value: field.value ?? '', autocomplete: 'off', spellcheck: 'false',
+      placeholder: field.hasValue ? `${field.masked}（留空则不改动）` : (field.required ? '必填' : '未配置'),
+      oninput: event => { field.value = event.target.value; },
+    });
+  } else {
+    input = el('input', {
+      type: 'text', class: 'mono', value: field.value ?? '',
+      oninput: event => { field.value = event.target.value; },
+    });
+  }
+  nodesByPath[path] = input;
+
+  const buttons = [];
+  if (field.type === 'secret' && field.hasValue) {
+    buttons.push(el('button', {
+      class: 'link',
+      text: '显示',
+      onclick: async event => {
+        const query = `provider=${encodeURIComponent(provider.originalName || provider.name)}&field=${encodeURIComponent(field.key)}`;
+        const result = await api(`/api/secret?${query}`);
+        if (!result.ok) { setStatus('err', result.data.error || '读取失败'); return; }
+        field.value = result.data.value;
+        input.type = 'text';
+        input.value = result.data.value;
+        event.target.remove();
+      },
+    }));
+    buttons.push(el('button', {
+      class: 'link danger',
+      text: '清除',
+      onclick: () => { field.value = ''; field.cleared = true; field.hasValue = false; render(); },
+    }));
+  }
+
+  return [
+    el('div', { class: 'row' },
+      el('label', { text: field.unit ? `${field.label}（${field.unit}）` : field.label }),
+      el('div', { class: 'control' }, input, buttons),
+    ),
+    overrideHint(field),
+  ];
+}
+
+function renderProvider(provider) {
+  const result = el('span', { class: 'result' });
+
+  const toggle = el('input', {
+    type: 'checkbox',
+    ...(provider.enabled ? { checked: true } : {}),
+    onchange: event => { provider.enabled = event.target.checked; card.className = provider.enabled ? 'card' : 'card off'; },
+  });
+
+  const title = provider.builtin
+    ? [el('h2', { text: provider.typeName }), el('span', { class: 'name', text: provider.name })]
+    : [el('h2', { text: provider.typeName }), el('span', { class: 'name', text: '实例' })];
+
+  const head = el('div', { class: 'card-head' },
+    title,
+    el('span', { class: 'spacer' }),
+    result,
+    el('label', { class: 'switch' }, toggle, '启用'),
+    provider.builtin ? null : el('button', {
+      class: 'link danger', text: '删除',
+      onclick: () => {
+        view.providers = view.providers.filter(item => item !== provider);
+        render();
+      },
+    }),
+  );
+
+  const rows = [];
+  if (!provider.builtin) {
+    rows.push(el('div', { class: 'row' },
+      el('label', { text: '实例名' }),
+      el('div', { class: 'control' }, el('input', {
+        type: 'text', class: 'mono', value: provider.name,
+        oninput: event => { provider.name = event.target.value.trim(); },
+      })),
+    ));
+    rows.push(el('div', { class: 'hint', text: 'config.yaml 里的键名，也是 -p 和 reset 的参数，只能用字母数字和 - _' }));
+  }
+
+  rows.push(el('div', { class: 'row' },
+    el('label', { text: '显示名' }),
+    el('div', { class: 'control' }, el('input', {
+      type: 'text', value: provider.label,
+      placeholder: provider.typeName,
+      oninput: event => { provider.label = event.target.value; },
+    })),
+  ));
+
+  for (const field of provider.fields) rows.push(renderField(provider, field));
+
+  const testButton = el('button', {
+    text: '测试连接',
+    onclick: async () => {
+      testButton.disabled = true;
+      result.className = 'result';
+      result.textContent = '查询中…';
+      const response = await api('/api/test', { method: 'POST', body: JSON.stringify(providerPayload(provider)) });
+      testButton.disabled = false;
+      const data = response.data || {};
+      if (!response.ok || data.ok === false) {
+        result.className = 'result err';
+        result.textContent = `✗ ${data.error || '请求失败'}`;
+        return;
+      }
+      const line = (data.lines || [])[0];
+      const summary = line
+        ? `${line.label} ${line.used}${line.limit ? `/${line.limit}` : ''} ${line.unit || ''}`
+        : (data.meta || '正常');
+      result.className = 'result ok';
+      result.textContent = `✓ ${summary}`;
+    },
+  });
+  rows.push(el('div', { class: 'row' }, el('label', {}), el('div', { class: 'control' }, testButton)));
+
+  const card = el('section', { class: provider.enabled ? 'card' : 'card off' },
+    head,
+    el('div', { class: 'body' }, rows),
+  );
+  return card;
+}
+
+function renderAddBar() {
+  const select = el('select', {}, view.types.map(item => el('option', { value: item.type, text: item.name })));
+  return el('div', { class: 'addbar' },
+    select,
+    el('button', {
+      text: '+ 添加账号实例',
+      onclick: () => {
+        const type = select.value;
+        const template = view.providers.find(item => item.name === type);
+        let suffix = 2;
+        while (view.providers.some(item => item.name === `${type}-${suffix}`)) suffix++;
+        view.providers.push({
+          name: `${type}-${suffix}`,
+          originalName: null,
+          type,
+          builtin: false,
+          typeName: template.typeName,
+          enabled: true,
+          label: '',
+          // 额外实例只读 config.yaml，不受环境变量影响，所以清掉覆盖标记
+          fields: template.fields.map(field => ({
+            ...field, value: '', masked: '', hasValue: false, cleared: false, envVar: null, overriddenBy: null,
+          })),
+        });
+        render();
+      },
+    }),
+    el('span', { class: 'hint', text: '同一个 provider 配多个账号' }),
+  );
+}
+
+function renderWatch() {
+  const rows = view.watch.flatMap(field => {
+    const input = el('input', {
+      type: 'number', min: String(field.min), value: field.value,
+      oninput: event => { field.value = event.target.value; },
+    });
+    nodesByPath[`watch.${field.key}`] = input;
+
+    return [
+      el('div', { class: 'row' },
+        el('label', { text: field.label }),
+        el('div', { class: 'control' },
+          input,
+          el('span', { class: 'hint', text: `${field.unit}，最小 ${field.min}` }),
+        ),
+      ),
+      overrideHint(field),
+    ];
+  });
+
+  return el('section', { class: 'card' },
+    el('div', { class: 'card-head' }, el('h2', { text: '刷新间隔' }), el('span', { class: 'name', text: 'watch' })),
+    el('div', { class: 'body' }, rows),
+  );
+}
+
+function render() {
+  nodesByPath = {};
+  app.replaceChildren(
+    ...view.providers.map(renderProvider),
+    renderAddBar(),
+    renderWatch(),
+  );
+}
+
+function markErrors(errors) {
+  for (const error of errors) {
+    const node = nodesByPath[error.path];
+    if (node) node.classList.add('bad');
+  }
+  setBanner('err', '保存失败，请先修正：', errors.map(error => error.message));
+}
+
+async function load() {
+  const response = await api('/api/config');
+  if (!response.ok) {
+    setBanner('err', response.data.error || '读取配置失败', []);
+    return;
+  }
+  view = response.data;
+  for (const provider of view.providers) {
+    provider.originalName = provider.name;
+    for (const field of provider.fields) field.cleared = false;
+  }
+  document.getElementById('config-path').textContent = view.configPath;
+  clearBanner();
+  render();
+}
+
+document.getElementById('save').addEventListener('click', async event => {
+  event.target.disabled = true;
+  setStatus('', '保存中…');
+  const response = await api('/api/config', { method: 'POST', body: JSON.stringify(payload()) });
+  event.target.disabled = false;
+
+  if (!response.ok) {
+    setStatus('err', '未保存');
+    markErrors(response.data.errors || [{ path: '', message: response.data.error || '未知错误' }]);
+    return;
+  }
+  await load();
+  const backup = response.data.backupPath ? `（旧文件备份为 ${response.data.backupPath}）` : '';
+  setStatus('ok', '已保存，正在运行的 watch 会自动重载');
+  setBanner('ok', `已写入 ${response.data.configPath}${backup}`, []);
+});
+
+load();
+</script>
+</body>
+</html>
