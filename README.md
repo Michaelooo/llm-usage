@@ -19,15 +19,15 @@
 ### 公共 npm 安装
 
 ```bash
-npm install -g @michaelcheng/llm-usage
+npm install -g @michaelooo/llm-usage
 # 或
-pnpm add -g @michaelcheng/llm-usage
+pnpm add -g @michaelooo/llm-usage
 ```
 
 不想全局安装，也可以直接运行：
 
 ```bash
-npx @michaelcheng/llm-usage
+npx @michaelooo/llm-usage
 ```
 
 ### 本地克隆安装
