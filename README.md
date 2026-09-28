@@ -211,12 +211,15 @@ git config core.hooksPath .githooks
 
 ## 发布
 
-推送 `v` 开头的 tag 会触发 GitHub Actions：校验 tag 与 `package.json` 版本一致 → lint → test → 发布到 npm（带 provenance）→ 创建 GitHub Release。
+采用 npm [Trusted Publishing](https://docs.npmjs.com/trusted-publishers)：推送 `v` 开头的 tag 触发 GitHub Actions，用 OIDC 临时凭证发布，不需要任何 npm token 或 secret。流程：校验 tag 与 `package.json` 版本一致 → lint → test → 发布到 npm（自动生成 provenance）→ 创建 GitHub Release。
 
-### 首次配置（一次性）
+### 首次发布（一次性）
 
-1. 在 npmjs.com 生成 Granular Access Token（Packages 权限选 Read and write）。
-2. 仓库 Settings → Secrets and variables → Actions，添加 secret `NPM_TOKEN`。
+Trusted Publisher 配置入口在包的设置页里，所以第一版需要手动发出：
+
+1. 本机登录并发布：`npm login && npm publish --access public`（2FA 开启时按提示输验证码）。
+2. npmjs.com → 包 `@michaelooo/llm-usage` 页面 → Settings → Trusted publishing → GitHub Actions，填 owner `Michaelooo`、repository `llm-usage`、workflow filename `publish.yml`（区分大小写，需与仓库中的文件名一致）。
+3. 删除不再需要的 `NPM_TOKEN` secret 与所有 npm token。
 
 ### 日常发版
 

@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "description": "终端里的 LLM 额度与本地 Token 用量看板",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Michaelooo/llm-usage.git"
+  },
   "bin": {
     "llm-usage": "./bin/llm-usage.mjs"
   },
