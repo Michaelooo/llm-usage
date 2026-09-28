@@ -230,6 +230,8 @@ git push --follow-tags
 
 CI 失败时修复后重推 tag：`git push origin :refs/tags/v0.1.1 && git tag v0.1.1 && git push origin v0.1.1`。
 
+配置过程中的约束与踩坑记录见 [`docs/release.md`](docs/release.md)。
+
 ## License
 
 [MIT](LICENSE)
