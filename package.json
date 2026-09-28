@@ -8,7 +8,7 @@
     "url": "git+https://github.com/Michaelooo/llm-usage.git"
   },
   "bin": {
-    "llm-usage": "./bin/llm-usage.mjs"
+    "llm-usage": "bin/llm-usage.mjs"
   },
   "packageManager": "pnpm@8.15.9",
   "files": [
